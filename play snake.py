@@ -23,6 +23,7 @@ snake_color = (236, 240, 241)
 food_colour = (148, 49, 38)
 snake_head = (247, 229, 111)
 
+
 class Snake:
     def __init__(self, x_start, y_start):
         self.x = x_start
@@ -49,7 +50,8 @@ class Snake:
             if not i == 0:
                 pygame.draw.rect(display, snake_color, (self.history[i][0], self.history[i][1], self.w, self.h))
             else:
-                pygame.draw.rect(display, snake_head, (int(self.history[i][0]), int(self.history[i][1]), self.w, self.h))
+                pygame.draw.rect(display, snake_head,
+                                 (int(self.history[i][0]), int(self.history[i][1]), self.w, self.h))
 
     def check_eaten(self):
         if abs(self.history[0][0] - food_x) < scale and abs(self.history[0][1] - food_y) < scale:
@@ -57,12 +59,13 @@ class Snake:
 
     def grow(self):
         self.length += 1
-        self.history.append(self.history[self.length-2])
+        self.history.append(self.history[self.length - 2])
 
     def death(self):
         i = self.length - 1
         while i > 0:
-            if abs(self.history[0][0] - self.history[i][0]) < self.w and abs(self.history[0][1] - self.history[i][1]) < self.h and self.length > 2:
+            if abs(self.history[0][0] - self.history[i][0]) < self.w and abs(
+                    self.history[0][1] - self.history[i][1]) < self.h and self.length > 2:
                 return True
             i -= 1
 
@@ -94,29 +97,33 @@ def show_score():
 def game_loop():
     loop = True
     global score
-
-    snake = Snake(width/2, height/2)
+    speed = 6
+    snake = Snake(width / 2, height / 2)
     food = Food()
+
+    food.new_location()
 
     while loop:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit(0)
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit(0)
                 if snake.y_dir == 0:
-                    if event.type == pygame.K_UP:
+                    if event.key == pygame.K_UP:
                         snake.x_dir = 0
                         snake.y_dir = -1
-                    if event.type == pygame.K_DOWN:
+                    if event.key == pygame.K_DOWN:
                         snake.x_dir = 0
                         snake.y_dir = 1
 
                 if snake.x_dir == 0:
-                    if event.type == pygame.K_LEFT:
+                    if event.key == pygame.K_LEFT:
                         snake.x_dir = -1
                         snake.y_dir = 0
-                    if event.type == pygame.K_DOWN:
+                    if event.key == pygame.K_RIGHT:
                         snake.x_dir = 1
                         snake.y_dir = 0
         display.fill(background)
@@ -127,6 +134,13 @@ def game_loop():
         show_score()
 
         if snake.check_eaten():
+            food.new_location()
+            score += 1
+            snake.grow()
+            if score % 5 == 0:
+                speed += 1
+
+        if snake.death():
             score = 0
             font = pygame.font.SysFont("Copperplate Gothic Bold", 50)
             text = font.render("Game Over !", True, snake_color)
@@ -148,7 +162,7 @@ def game_loop():
             snake.history[0][1] = height
 
         pygame.display.update()
-        clock.tick(10)
+        clock.tick(speed)
 
 
 game_loop()
